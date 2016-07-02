@@ -4,7 +4,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-
+#include <alsa/asoundlib.h>
+#include <alsa/control.h>
 
 static void setstatus(const char *str) {
 	Display *display;
@@ -20,6 +21,36 @@ static void setstatus(const char *str) {
 	XCloseDisplay(display);
 }
 
+char* getVol(void){
+
+    	int val;
+    	static char vol[1024];
+    	snd_hctl_t *hctl;
+    	snd_ctl_elem_id_t *id;
+    	snd_ctl_elem_value_t *control;
+
+// To find card and subdevice: /proc/asound/, aplay -L, amixer controls
+    	snd_hctl_open(&hctl, "hw:0", 0);
+    	snd_hctl_load(hctl);
+
+    	snd_ctl_elem_id_alloca(&id);
+    	snd_ctl_elem_id_set_interface(id, SND_CTL_ELEM_IFACE_MIXER);
+
+// amixer controls
+    	snd_ctl_elem_id_set_name(id, "Master Playback Volume");
+
+    	snd_hctl_elem_t *elem = snd_hctl_find_elem(hctl, id);
+
+    	snd_ctl_elem_value_alloca(&control);
+    	snd_ctl_elem_value_set_id(control, id);
+
+    	snd_hctl_elem_read(elem, control);
+    	val = (int)snd_ctl_elem_value_get_integer(control,0);
+
+    	snd_hctl_close(hctl);
+    	snprintf(vol,sizeof(vol), "| vol  %d%% ", val);
+    	return vol;
+}
 
 char* getTemp(void){
 	FILE* f;
@@ -53,19 +84,22 @@ char* getDate(){
 
 	
 int main(void){
-	while(1){
+	while(1)
+	{
+	char* vol = getVol();
 	char* temp = getTemp();
 	char* bat = getBat();
-	char* s = getDate();
+	char* date = getDate();
 	char* status;
-	status = malloc(strlen(temp) + strlen(s) + strlen(bat) + 3);
-	strcpy(status, temp);
+	status = malloc(strlen(vol) + strlen(temp) + strlen(date) + strlen(bat) + 4);
+	strcpy(status, vol);
+	strcat(status, temp);
 	strcat(status, bat);
-	strcat(status, s);
+	strcat(status, date);
 	setstatus(status);
 	free(status);
 	sleep(1);
 	}
 	return 0;
-	}
+}
 
