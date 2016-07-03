@@ -46,9 +46,9 @@ char* getVol(void){
 
     	snd_hctl_elem_read(elem, control);
     	val = (int)snd_ctl_elem_value_get_integer(control,0);
-
     	snd_hctl_close(hctl);
-    	snprintf(vol,sizeof(vol), "| vol  %d%% ", val);
+	val = val - 74;
+	snprintf(vol,sizeof(vol), "| vol %d db ", val);
     	return vol;
 }
 
