@@ -8,4 +8,5 @@ install:
 	cp dwmstatus /bin
 
 clean:
+	rm dwmstatus
 	rm /bin/dwmstatus
