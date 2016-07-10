@@ -67,6 +67,10 @@ char* getBat(void){
 	int val;
 	static char bat[128];
 	f = fopen("/sys/class/power_supply/BAT0/capacity", "r");
+	if (f == 0){
+		snprintf(bat,sizeof(bat),"| AC |");
+		return bat;
+	}
 	fscanf(f, "%d", &val);
 	fclose(f);
 	snprintf(bat, sizeof(bat), "| bat %d%% |", val);
